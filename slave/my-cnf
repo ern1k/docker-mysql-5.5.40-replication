@@ -1,0 +1,6 @@
+[mysqld]
+log_bin = mysql-bin
+server_id = 2
+relay-log = /var/lib/mysql/mysql-relay-bin
+relay-log-index = /var/lib/mysql/mysql-relay-bin.index
+read_only = 1

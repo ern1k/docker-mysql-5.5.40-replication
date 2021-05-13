@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+
+  master:
+    image: mysql:5.5.40
+    container_name: master
+    hostname: master
+    ports:
+      - '3304:3306'
+    restart: always
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: test
+    volumes:
+      - ./master/my-cnf:/etc/mysql/my.cnf
+      - ./master/entrypoint.sh:/entrypoint.sh
+
+  slave:
+    image: mysql:5.5.40
+    container_name: slave
+    hostname: slave
+    depends_on:
+      - master
+    ports:
+      - '3305:3306'
+    restart: always
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: test
+    volumes:
+      - ./slave/my-cnf:/etc/mysql/my.cnf
+      - ./slave/entrypoint.sh:/entrypoint.sh
