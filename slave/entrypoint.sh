@@ -18,6 +18,7 @@ if [ ! -d '/var/lib/mysql/mysql' -a "${1%_safe}" = 'mysqld' ]; then
 		DELETE FROM mysql.user ;
 		CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
 		GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
+		DROP DATABASE IF EXISTS test ;
 		STOP SLAVE;
 		CHANGE MASTER TO MASTER_HOST='master', MASTER_USER='replication', MASTER_LOG_FILE='mysql-bin.000001', MASTER_LOG_POS=182;
 		START SLAVE;
