@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Sleep 5 seconds, before Master starts
+sleep 5
+
 if [ ! -d '/var/lib/mysql/mysql' -a "${1%_safe}" = 'mysqld' ]; then
 	if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
 		echo >&2 'error: database is uninitialized and MYSQL_ROOT_PASSWORD not set'
@@ -14,13 +17,16 @@ if [ ! -d '/var/lib/mysql/mysql' -a "${1%_safe}" = 'mysqld' ]; then
 	# semicolons (no line breaks or comments are permitted).
 	# TODO proper SQL escaping on ALL the things D:
 	TEMP_FILE='/tmp/mysql-first-time.sql'
+	
+	Master_Position=$(eval "mysql --host master -uroot -ptest -e 'show master status \G' | grep Position | sed -n -e 's/^.*: //p'")
+	Master_File=$(eval "mysql --host master -uroot -ptest -e 'show master status \G'     | grep File     | sed -n -e 's/^.*: //p'")
+
 	cat > "$TEMP_FILE" <<-EOSQL
 		DELETE FROM mysql.user ;
 		CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
 		GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
-		DROP DATABASE IF EXISTS test ;
 		STOP SLAVE;
-		CHANGE MASTER TO MASTER_HOST='master', MASTER_USER='replication', MASTER_LOG_FILE='mysql-bin.000001', MASTER_LOG_POS=182;
+		CHANGE MASTER TO master_host='master', master_user='root', master_password='test', master_log_file='$Master_File', master_log_pos=$Master_Position ;
 		START SLAVE;
 	EOSQL
 	
